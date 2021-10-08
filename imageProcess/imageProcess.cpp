@@ -400,12 +400,83 @@ int cvbag::match::cpuTemplateMatch(const cv::Mat &srcImage, const cv::Mat &tempI
 }
 
 
-int cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
-	double &matchVal, cv::Point &matchLoc, int mode,
+int cvbag::match::cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
+	double &matchVal, cv::Point &matchLoc, int mode, double &resultAngle,
 	double angleStart , double angleEnd , double angleStep )
 {
+	if (srcImage.empty() || tempImage.empty())
+	{
+		std::cout << "ERROR:In function cpuTemplateMatch: input image is empty! \n";
+		return -1;
+	}
+
+	//cv::Mat result;
+
+	int result_w = srcImage.cols - tempImage.cols;
+	int result_h = srcImage.rows - tempImage.rows;
+	if (result_w < 0 || result_h < 0)
+	{
+		std::cout << "ERROR:in function opencvTemplateMatch: roi image's size should be larger than tamplate's \n";
+		return -1;
+	}
+
+	//matchValues 和 matchAngles 类似二次函数，
+	//用二次函数拟合得到匹配角度和匹配值
+	std::vector<double> matchAngles, matchValues;
+	cv::Mat rotatedImage;
+	for (double angle = angleStart; angle <= angleEnd; angle += angleStep)
+	{
+		cvbag::rotateImage(srcImage, rotatedImage, angle);
+		cvbag::match::cpuTemplateMatch(rotatedImage, tempImage, result, matchVal, matchLoc, mode);
+		matchAngles.push_back(angle);
+		matchValues.push_back(matchVal);
+	}
+
+	//用二次曲线拟合得到的结果就是最终的匹配值和角度
+	double finalVal, finalAngle;
+	cvbag::match::fitCurve_2grade(matchAngles, matchValues, finalVal, finalAngle);
+	cvbag::rotateImage(srcImage, rotatedImage, resultAngle, mode);
+	//旋转finalAngle的角度后检测，返回匹配位置
+	cvbag::match::cpuTemplateMatch(rotatedImage, tempImage, result, matchVal, matchLoc, mode);
+	matchVal = finalVal;
+	resultAngle = finalAngle;
+
 	return 0;
 }
+
+
+int cvbag::match::fitCurve_2grade(std::vector<double> x, std::vector<double> y, double &finaly, double &finalx)
+{
+	//columns is 3, rows is x.size()
+	cv::Mat A = cv::Mat::zeros(cv::Size(3, x.size()), CV_64FC1);
+	for (int i = 0; i < x.size(); i++)
+	{
+		A.at<double>(i, 0) = 1;
+		A.at<double>(i, 1) = x[i];
+		A.at<double>(i, 2) = x[i] * x[i];
+	}
+
+	cv::Mat b = cv::Mat::zeros(cv::Size(1, y.size()), CV_64FC1);
+	for (int i = 0; i < y.size(); i++)
+	{
+		b.at<double>(i, 0) = y[i];
+	}
+
+	cv::Mat c;
+	c = A.t() * A;
+	cv::Mat d;
+	d = A.t() * b;
+
+	cv::Mat result = cv::Mat::zeros(cv::Size(1, 3), CV_64FC1);
+	cv::solve(c, d, result);
+	double a0 = result.at<double>(0, 0);
+	double a1 = result.at<double>(1, 0);
+	double a2 = result.at<double>(2, 0);
+	finalx = -a1 / a2 / 2;
+	finaly = a0 + a1 * finalx + a2 * finalx*finalx;
+	return 0;
+}
+
 
 int cvbag::gammaTransform_threeChannels(const cv::Mat &image, cv::Mat &dst, const int table[])
 {

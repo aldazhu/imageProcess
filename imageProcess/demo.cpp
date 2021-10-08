@@ -32,6 +32,48 @@ int templateMatchDemo()
 	return 0;
 }
 
+
+int templateMatchWithAngleDemo()
+{
+	const std::string fileName = "K:\\imageData\\colorR\\test2.bmp";
+	cv::Mat srcImage = cv::imread(fileName);
+
+	//cut a region from srcImage as a templateImage
+	cv::Mat rotatedImage;
+	cvbag::rotateImage(srcImage, rotatedImage, 5);
+	int x = 5, y = 5, w = 20, h = 30;
+	cv::Mat templateImage = rotatedImage(cv::Rect(x, y, w, h));
+
+	//match
+	double matchVal;//score
+	cv::Point matchLoc;//top left 
+	cv::Mat result;//
+	int mode = 5;
+	double angleStart = -10;
+	double angleEnd = 10;
+	double angleStep = 2;
+	double resultAngle;
+	cvbag::match::cpuTemplateMatchWithAngle(srcImage, templateImage, result, matchVal, matchLoc, mode,
+		resultAngle, angleStart, angleEnd, angleStep);
+
+	//show result
+	std::cout << "matchVal = " << matchVal << std::endl;
+	std::cout << "resultAngle = " << resultAngle << std::endl;
+	cv::Point topLeft = matchLoc;
+	cv::Point bottomRight = cv::Point(topLeft.x + templateImage.cols, topLeft.y + templateImage.rows);
+
+	cvbag::rotateImage(srcImage, rotatedImage, resultAngle);
+	cv::rectangle(rotatedImage, cv::Rect(topLeft, bottomRight), cv::Scalar(0, 255, 0), 2);
+
+	cvbag::showImage(srcImage, "srcImage", 1);
+	cvbag::showImage(templateImage, "tempImage", 1);
+	cvbag::showImage(rotatedImage, "drawImage", 1);
+	cv::normalize(result, result, 0, 1, cv::NORM_MINMAX);//result data type is 64F,transform to 0~1
+	cvbag::showImage(result, "result", 0);
+	return 0;
+}
+
+
 int demo()
 {
 	const std::string fileName = "K:\\imageData\\colorR\\test2.bmp";
@@ -124,7 +166,8 @@ int demo()
 int main()
 {
 	//demo();
-	templateMatchDemo();
+	//templateMatchDemo();
+	templateMatchWithAngleDemo();
 
 	return 0;
 }

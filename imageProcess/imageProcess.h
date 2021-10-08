@@ -53,9 +53,12 @@ namespace cvbag
 
 		//Template Match With Angle
 		int cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
-			double &matchVal, cv::Point &matchLoc, int mode,
+			double &matchVal, cv::Point &matchLoc, int mode, double &resultAngle,
 			double angleStart = -10, double angleEnd = 10, double angleStep = 1);
-	}
+
+		int fitCurve_2grade(std::vector<double> x, std::vector<double> y, double &finaly, double &finalx);
+
+	}//end namespace match
 	
 
 	//use the table to transform the pixels 
