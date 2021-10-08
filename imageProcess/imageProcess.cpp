@@ -335,6 +335,78 @@ int cvbag::rotateImage(const cv::Mat &srcImage, cv::Mat &dst, const double angle
 	return 0;
 }
 
+int cvbag::match::cpuTemplateMatch(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
+	double &matchVal, cv::Point &matchLoc, int mode)
+{
+	if (srcImage.empty() || tempImage.empty())
+	{
+		std::cout << "ERROR:In function cpuTemplateMatch: input image is empty! \n";
+		return -1;
+	}
+
+	//cv::Mat result;
+
+	int result_w = srcImage.cols - tempImage.cols;
+	int result_h = srcImage.rows - tempImage.rows;
+	if (result_w < 0 || result_h < 0)
+	{
+		std::cout << "ERROR:in function opencvTemplateMatch: roi image's size should be larger than tamplate's \n";
+		return -1;
+	}
+	//result.create(result_h, result_w, CV_32FC1);
+	switch (mode)
+	{
+	case 0:
+		//R = sum (t-Roi)^2
+		cv::matchTemplate(srcImage, tempImage, result, cv::TM_SQDIFF);
+		cv::minMaxLoc(result, &matchVal, NULL, &matchLoc, NULL);
+		break;
+	case 1:
+		//R = sum (t-Roi)^2/(sqrt(sum t^2   *  sum Roi^2))
+		cv::matchTemplate(srcImage, tempImage, result, cv::TM_SQDIFF_NORMED);
+		cv::minMaxLoc(result, &matchVal, NULL, &matchLoc, NULL);
+		break;
+	case 2:
+		//R = sum t*Roi
+		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCORR);
+		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
+		break;
+	case 3:
+		//R = sum t*Roi / (sqrt(sum t^2   *  sum Roi^2))
+		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCORR_NORMED);
+		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
+		break;
+	case 4:
+		//R = sum t1*Roi1
+		//t1 = t - t_mean
+		//Roi1 = Roi - Roi_mean
+		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCOEFF);
+		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
+		break;
+	case 5:
+		//R = sum t1*Roi1 / (sqrt(sum t1^2   *  sum Roi1^2))
+		//t1 = t - t_mean
+		//Roi1 = Roi - Roi_mean
+		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCOEFF_NORMED);
+		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
+		break;
+	default:
+		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCOEFF_NORMED);
+		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
+		break;
+	}
+
+	return 0;
+}
+
+
+int cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
+	double &matchVal, cv::Point &matchLoc, int mode,
+	double angleStart , double angleEnd , double angleStep )
+{
+	return 0;
+}
+
 int cvbag::gammaTransform_threeChannels(const cv::Mat &image, cv::Mat &dst, const int table[])
 {
 	std::vector<cv::Mat> channelsImage;
@@ -438,68 +510,8 @@ int cvbag::getGammaTable_piecewiseLinear(int *a, const int src1, const int dst1,
 	return 0;
 }
 
-int cvbag::cpuTemplateMatch(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
-	double &matchVal, cv::Point &matchLoc, int mode)
-{
-	if (srcImage.empty() || tempImage.empty())
-	{
-		std::cout << "ERROR:In function cpuTemplateMatch: input image is empty! \n";
-		return -1;
-	}
 
-	//cv::Mat result;
 
-	int result_w = srcImage.cols - tempImage.cols;
-	int result_h = srcImage.rows - tempImage.rows;
-	if (result_w < 0 || result_h < 0)
-	{
-		std::cout << "ERROR:in function opencvTemplateMatch: roi image's size should be larger than tamplate's \n";
-		return -1;
-	}
-	//result.create(result_h, result_w, CV_32FC1);
-	switch (mode)
-	{
-	case 0:
-		//R = sum (t-Roi)^2
-		cv::matchTemplate(srcImage, tempImage, result, cv::TM_SQDIFF);
-		cv::minMaxLoc(result, &matchVal, NULL, &matchLoc, NULL);
-		break;
-	case 1:
-		//R = sum (t-Roi)^2/(sqrt(sum t^2   *  sum Roi^2))
-		cv::matchTemplate(srcImage, tempImage, result, cv::TM_SQDIFF_NORMED);
-		cv::minMaxLoc(result, &matchVal, NULL, &matchLoc, NULL);
-		break;
-	case 2:
-		//R = sum t*Roi
-		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCORR);
-		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
-		break;
-	case 3:
-		//R = sum t*Roi / (sqrt(sum t^2   *  sum Roi^2))
-		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCORR_NORMED);
-		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
-		break;
-	case 4:
-		//R = sum t1*Roi1
-		//t1 = t - t_mean
-		//Roi1 = Roi - Roi_mean
-		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCOEFF);
-		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
-		break;
-	case 5:
-		//R = sum t1*Roi1 / (sqrt(sum t1^2   *  sum Roi1^2))
-		//t1 = t - t_mean
-		//Roi1 = Roi - Roi_mean
-		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCOEFF_NORMED);
-		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
-		break;
-	default:
-		cv::matchTemplate(srcImage, tempImage, result, cv::TM_CCOEFF_NORMED);
-		cv::minMaxLoc(result, NULL, &matchVal, NULL, &matchLoc);
-		break;
-	}
 
-	return 0;
-}
 
 

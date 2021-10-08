@@ -45,11 +45,18 @@ namespace cvbag
 	//mode = 0 ,Keep the original image size unchanged
 	//mode = 1, Change the original image size to fit the rotated scale, padding with zero
 	int rotateImage(const cv::Mat &srcImage, cv::Mat &outImage, const double angle, const int mode=1);
+                  
+	namespace match {
+		//cpuTemplateMatch
+		int cpuTemplateMatch(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
+			double &matchVal, cv::Point &matchLoc, int mode);
 
-
-	//cpuTemplateMatch
-	int cpuTemplateMatch(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
-		double &matchVal, cv::Point &matchLoc, int mode);
+		//Template Match With Angle
+		int cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
+			double &matchVal, cv::Point &matchLoc, int mode,
+			double angleStart = -10, double angleEnd = 10, double angleStep = 1);
+	}
+	
 
 	//use the table to transform the pixels 
 	int gammaTransform(const cv::Mat &image, cv::Mat &dst, const int  table[]);
@@ -71,6 +78,6 @@ namespace cvbag
 	int gamma_picewiseLinear(const cv::Mat &image, cv::Mat &dst,
 		const int src1 = 80, const int dst1 = 60, const int src2 = 160, const int dst2 = 180);
 
-};//end namespace cvbag
+}//end namespace cvbag
 
 #endif

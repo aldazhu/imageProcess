@@ -15,7 +15,7 @@ int templateMatchDemo()
 	cv::Point matchLoc;//top left 
 	cv::Mat result;//
 	int mode = 1;
-	cvbag::cpuTemplateMatch(srcImage, templateImage, result, matchVal, matchLoc, mode);
+	cvbag::match::cpuTemplateMatch(srcImage, templateImage, result, matchVal, matchLoc, mode);
 
 	//show result
 	std::cout << "matchVal = " << matchVal << std::endl;
@@ -125,5 +125,6 @@ int main()
 {
 	//demo();
 	templateMatchDemo();
+
 	return 0;
 }
