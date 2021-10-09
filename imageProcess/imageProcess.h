@@ -46,21 +46,6 @@ namespace cvbag
 	//mode = 1, Change the original image size to fit the rotated scale, padding with zero
 	int rotateImage(const cv::Mat &srcImage, cv::Mat &outImage, const double angle, const int mode=1);
                   
-	namespace match {
-		//cpuTemplateMatch
-		int cpuTemplateMatch(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
-			double &matchVal, cv::Point &matchLoc, int mode);
-
-		//Template Match With Angle
-		int cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
-			double &matchVal, cv::Point &matchLoc, int mode, double &resultAngle,
-			double angleStart = -10, double angleEnd = 10, double angleStep = 1);
-
-		int fitCurve_2grade(std::vector<double> x, std::vector<double> y, double &finaly, double &finalx);
-
-	}//end namespace match
-	
-
 	//use the table to transform the pixels 
 	int gammaTransform(const cv::Mat &image, cv::Mat &dst, const int  table[]);
 	//if the input image's format  is 3 channels then use below method to transform the pixels
@@ -80,6 +65,20 @@ namespace cvbag
 	*/
 	int gamma_picewiseLinear(const cv::Mat &image, cv::Mat &dst,
 		const int src1 = 80, const int dst1 = 60, const int src2 = 160, const int dst2 = 180);
+
+	namespace match {
+		//cpuTemplateMatch
+		int cpuTemplateMatch(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
+			double &matchVal, cv::Point &matchLoc, int mode);
+
+		//Template Match With Angle
+		int cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
+			double &matchVal, cv::Point &matchLoc, int mode, double &resultAngle,
+			double angleStart = -10, double angleEnd = 10, double angleStep = 1);
+
+		int fitCurve_2grade(std::vector<double> x, std::vector<double> y, double &finaly, double &finalx);
+
+	}//end namespace match
 
 }//end namespace cvbag
 

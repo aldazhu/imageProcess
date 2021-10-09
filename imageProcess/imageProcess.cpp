@@ -399,7 +399,6 @@ int cvbag::match::cpuTemplateMatch(const cv::Mat &srcImage, const cv::Mat &tempI
 	return 0;
 }
 
-
 int cvbag::match::cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::Mat &tempImage, cv::Mat &result,
 	double &matchVal, cv::Point &matchLoc, int mode, double &resultAngle,
 	double angleStart , double angleEnd , double angleStep )
@@ -419,31 +418,53 @@ int cvbag::match::cpuTemplateMatchWithAngle(const cv::Mat &srcImage, const cv::M
 		std::cout << "ERROR:in function opencvTemplateMatch: roi image's size should be larger than tamplate's \n";
 		return -1;
 	}
+	//二次函数拟合最少需要三个已知点，点数越多拟合效果越好，
+	//这里设置最少3个点才可以用拟合的方法
 
 	//matchValues 和 matchAngles 类似二次函数，
 	//用二次函数拟合得到匹配角度和匹配值
 	std::vector<double> matchAngles, matchValues;
 	cv::Mat rotatedImage;
+	//如果数据点少于三次则无法用二次函数拟合，所以增加一点判断
+	int matchTimes = 0;
+	double maxMatchVal = 0;
+	double AngleOfMaxMatchVal = 0;//最佳匹配值对应的角度
+	cv::Point finalLoc;
 	for (double angle = angleStart; angle <= angleEnd; angle += angleStep)
 	{
 		cvbag::rotateImage(srcImage, rotatedImage, angle);
 		cvbag::match::cpuTemplateMatch(rotatedImage, tempImage, result, matchVal, matchLoc, mode);
 		matchAngles.push_back(angle);
 		matchValues.push_back(matchVal);
+		++matchTimes;
+		if (matchTimes < 3 && maxMatchVal < matchVal)
+		{
+			maxMatchVal = matchVal;
+			finalLoc = matchLoc;
+			AngleOfMaxMatchVal = angle;
+		}//end if 
 	}
 
-	//用二次曲线拟合得到的结果就是最终的匹配值和角度
-	double finalVal, finalAngle;
-	cvbag::match::fitCurve_2grade(matchAngles, matchValues, finalVal, finalAngle);
-	cvbag::rotateImage(srcImage, rotatedImage, resultAngle, mode);
-	//旋转finalAngle的角度后检测，返回匹配位置
-	cvbag::match::cpuTemplateMatch(rotatedImage, tempImage, result, matchVal, matchLoc, mode);
-	matchVal = finalVal;
-	resultAngle = finalAngle;
+	if (matchTimes < 3)
+	{
+		matchVal = maxMatchVal;
+		matchLoc = finalLoc;
+		resultAngle = AngleOfMaxMatchVal;
+	}
+	else
+	{
+		//用二次曲线拟合得到的结果就是最终的匹配值和角度
+		double finalVal, finalAngle;
+		cvbag::match::fitCurve_2grade(matchAngles, matchValues, finalVal, finalAngle);
+		cvbag::rotateImage(srcImage, rotatedImage, resultAngle, mode);
+		//旋转finalAngle的角度后检测，返回匹配位置
+		cvbag::match::cpuTemplateMatch(rotatedImage, tempImage, result, matchVal, matchLoc, mode);
+		matchVal = finalVal;
+		resultAngle = finalAngle;
+	}
 
 	return 0;
 }
-
 
 int cvbag::match::fitCurve_2grade(std::vector<double> x, std::vector<double> y, double &finaly, double &finalx)
 {
@@ -476,7 +497,6 @@ int cvbag::match::fitCurve_2grade(std::vector<double> x, std::vector<double> y, 
 	finaly = a0 + a1 * finalx + a2 * finalx*finalx;
 	return 0;
 }
-
 
 int cvbag::gammaTransform_threeChannels(const cv::Mat &image, cv::Mat &dst, const int table[])
 {

@@ -40,7 +40,8 @@ int templateMatchWithAngleDemo()
 
 	//cut a region from srcImage as a templateImage
 	cv::Mat rotatedImage;
-	cvbag::rotateImage(srcImage, rotatedImage, 5);
+	double rotateAngle = 1;
+	cvbag::rotateImage(srcImage, rotatedImage, rotateAngle);
 	int x = 5, y = 5, w = 20, h = 30;
 	cv::Mat templateImage = rotatedImage(cv::Rect(x, y, w, h));
 
@@ -48,9 +49,9 @@ int templateMatchWithAngleDemo()
 	double matchVal;//score
 	cv::Point matchLoc;//top left 
 	cv::Mat result;//
-	int mode = 5;
-	double angleStart = -10;
-	double angleEnd = 10;
+	int mode = 1;
+	double angleStart = -1;
+	double angleEnd = 1;
 	double angleStep = 2;
 	double resultAngle;
 	cvbag::match::cpuTemplateMatchWithAngle(srcImage, templateImage, result, matchVal, matchLoc, mode,
@@ -63,7 +64,7 @@ int templateMatchWithAngleDemo()
 	cv::Point bottomRight = cv::Point(topLeft.x + templateImage.cols, topLeft.y + templateImage.rows);
 
 	cvbag::rotateImage(srcImage, rotatedImage, resultAngle);
-	cv::rectangle(rotatedImage, cv::Rect(topLeft, bottomRight), cv::Scalar(0, 255, 0), 2);
+	cv::rectangle(rotatedImage, cv::Rect(topLeft, bottomRight), cv::Scalar(0, 255, 0), 1);
 
 	cvbag::showImage(srcImage, "srcImage", 1);
 	cvbag::showImage(templateImage, "tempImage", 1);
@@ -163,11 +164,20 @@ int demo()
 }
 
 
+void test()
+{
+	int a = 0, b=3;
+	int c;
+	a > b ? c = a : c = b;
+	std::cout << c;
+
+}
+
 int main()
 {
 	//demo();
 	//templateMatchDemo();
 	templateMatchWithAngleDemo();
-
+	test();
 	return 0;
 }
