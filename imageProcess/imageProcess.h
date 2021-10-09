@@ -1,4 +1,8 @@
-﻿#ifndef _IMAGE_PROCESS_H_
+﻿//
+//Created by Mr. Peng, 2021-09-28，In ShenZhen.
+//
+
+#ifndef _IMAGE_PROCESS_H_
 #define _IMAGE_PROCESS_H_
 
 #include "opencv.hpp"
